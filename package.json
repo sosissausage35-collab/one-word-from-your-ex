@@ -1,0 +1,1 @@
+{"description":"One word that describes your ex — entry for the make.fun bounty 'One Word From Your Ex'","engines":{"node":">=22"},"license":"MIT","main":"main.ts","name":"one-word-from-your-ex","scripts":{"start":"node main.ts"},"type":"module","version":"1.0.0"}
