@@ -29,7 +29,7 @@
 // The selection is fully deterministic: no randomness, no clock, no
 // environment dependence. The same run always writes the same word.
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 type Scores = {
@@ -156,6 +156,16 @@ function pickWord(candidates: Candidate[]): string {
 function main(): void {
   const word = pickWord(CANDIDATES);
 
+  // Gate: the competition requires exactly one word, 1-24 characters long.
+  if (word.trim().length === 0) {
+    throw new Error("selected word is blank");
+  }
+  if (word.length < 1 || word.length > 24) {
+    throw new Error(
+      `selected word must be 1-24 characters long, got ${word.length}: ${JSON.stringify(word)}`,
+    );
+  }
+
   // Exactly one word: lowercase letters only, no spaces, no punctuation.
   if (!/^[a-z]+$/.test(word)) {
     throw new Error(`selected word is not a single word: ${JSON.stringify(word)}`);
@@ -163,7 +173,16 @@ function main(): void {
 
   const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
   mkdirSync(outDir, { recursive: true });
-  writeFileSync(join(outDir, "entry.txt"), `${word}\n`, "utf8");
+  const outPath = join(outDir, "entry.txt");
+  writeFileSync(outPath, `${word}\n`, "utf8");
+
+  // Verify the file round-trips exactly: the chosen word plus one newline.
+  const written = readFileSync(outPath, "utf8");
+  if (written !== `${word}\n`) {
+    throw new Error(
+      `entry.txt verification failed: expected ${JSON.stringify(`${word}\n`)}, got ${JSON.stringify(written)}`,
+    );
+  }
 }
 
 main();
